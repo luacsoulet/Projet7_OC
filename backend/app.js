@@ -4,11 +4,7 @@ const mongoose = require('mongoose');
 
 const booksRoutes = require('./routes/books');
 
-mongoose.connect('mongodb+srv://lucas-user:Lucas2003@cluster0.deglmv3.mongodb.net/?retryWrites=true&w=majority',
-    {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    })
+mongoose.connect('mongodb+srv://lucas-user:Lucas2003@monvieuxgrimoire.xg7vu0w.mongodb.net/?retryWrites=true&w=majority',)
     .then(() => console.log('Connexion à MongoDB réussie !'))
     .catch(() => console.log('Connexion à MongoDB échouée !'));
 
