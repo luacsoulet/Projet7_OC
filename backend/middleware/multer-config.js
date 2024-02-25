@@ -1,5 +1,7 @@
-// const sharp = require("sharp");
 const multer = require('multer');
+const sharp = require('sharp');
+const fs = require('fs').promises;
+const path = require('path');
 
 const MIME_TYPES = {
     'image/jpg': 'jpg',
@@ -7,76 +9,40 @@ const MIME_TYPES = {
     'image/png': 'png'
 };
 
+const compressImage = async (imageName) => {
+    const imagePath = path.join(__dirname, '../illustrations/', imageName);
+
+    try {
+        // Read the image from the specified directory
+        const inputBuffer = await fs.readFile(imagePath);
+
+        // Compress the image with sharp
+        const compressedBuffer = await sharp(inputBuffer)
+            .jpeg({ quality: 80 }) // Set quality to 80% for JPEG images
+            .toBuffer();
+
+        // Save the compressed image back to the same directory
+        await fs.writeFile(imagePath, compressedBuffer);
+
+        console.log(`Image ${imageName} compressed and saved successfully.`);
+    } catch (error) {
+        console.error(`Error compressing image ${imageName}: ${error.message}`);
+    }
+};
+
 const storage = multer.diskStorage({
     destination: (req, file, callback) => {
         callback(null, 'illustrations');
     },
-    filename: (req, file, callback) => {
+    filename: async (req, file, callback) => {
         const name = file.originalname.split(' ').join('_');
         const extension = MIME_TYPES[file.mimetype];
-        callback(null, name.replace(`.${extension}`, '') + Date.now() + '.' + extension);
+        const ref = name.replace(`.${extension}`, '') + Date.now() + '.' + extension;
+        compressImage(ref);
+        callback(null, ref);
     }
 });
 
 module.exports = multer({ storage: storage }).single('image');
 
-// const multer = require('multer');
-// const sharp = require("sharp");
 
-// const MIME_TYPES = {
-//     'image/jpg': 'jpg',
-//     'image/jpeg': 'jpg',
-//     'image/png': 'png'
-// };
-
-// const storage = multer.diskStorage({
-//     destination: (req, file, callback) => {
-//         callback(null, 'illustrations');
-//     },
-//     filename: (req, file, callback) => {
-//         const name = file.originalname.split(' ').join('_');
-//         const extension = MIME_TYPES[file.mimetype];
-//         callback(null, name.replace(`.${extension}`, '') + Date.now() + '.' + extension);
-//     }
-// });
-
-// const upload = multer({ storage: storage }).single('image');
-
-// module.exports = (req, res) => {
-//     upload(req, res, (err) => {
-//         if (err) {
-//             return res.status(400).json({ error: 'Image upload failed' });
-//         }
-
-//         if (!req.file) {
-//             return res.status(400).json({ error: 'No image provided' });
-//         }
-
-//         let imagePath = req.file.path;
-//         let imageExtension = req.file.filename.split('.').pop();
-
-//         if (imageExtension === 'jpg' || imageExtension === 'jpeg') {
-//             sharp(imagePath)
-//                 .jpeg({ quality: 50 })
-//                 .toFile(`illustrations/${req.file.filename}.jpg`, (err, info) => {
-//                     if (err) {
-//                         return res.status(500).json({ error: 'Image processing failed' });
-//                     }
-
-//                     return res.status(200).json({ message: 'Image uploaded and processed successfully' });
-//                 });
-//         } else if (imageExtension === 'png') {
-//             sharp(imagePath)
-//                 .png({ quality: 50 })
-//                 .toFile(`illustrations/${req.file.filename}.png`, (err, info) => {
-//                     if (err) {
-//                         return res.status(500).json({ error: 'Image processing failed' });
-//                     }
-
-//                     return res.status(200).json({ message: 'Image uploaded and processed successfully' });
-//                 });
-//         } else {
-//             return res.status(400).json({ error: 'Unsupported image format' });
-//         }
-//     });
-// };
