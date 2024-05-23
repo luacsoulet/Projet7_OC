@@ -5,10 +5,12 @@ exports.createBook = (req, res, next) => {
     const bookObject = JSON.parse(req.body.book);
     delete bookObject._id;
     delete bookObject._userId;
+    const date = new Date(Date.now()).getMinutes();
+    const originalName = req.file.originalname.split(' ').join('-').replace(/\.[^/.]+$/, "");
     const book = new Book({
         ...bookObject,
+        imageUrl: `${req.protocol}://${req.get('host')}/illustrations/${originalName}-${date}-cover.webp`,
         userId: req.auth.userId,
-        imageUrl: `${req.protocol}://${req.get('host')}/illustrations/${req.file.filename}`
     });
 
     book.save()
@@ -72,9 +74,11 @@ exports.ratingBook = (req, res, next) => {
 };
 
 exports.modifyBook = (req, res, next) => {
+    const date = new Date(Date.now()).getMinutes();
+
     const bookObject = req.file ? {
         ...JSON.parse(req.body.book),
-        imageUrl: `${req.protocol}://${req.get('host')}/illustrations/${req.file.filename}`
+        imageUrl: `${req.protocol}://${req.get('host')}/illustrations/${req.file.originalname.split(' ').join('-').replace(/\.[^/.]+$/, "")}-${date}-cover.webp`
     } : { ...req.body };
 
     const BookUpdate = () => {
