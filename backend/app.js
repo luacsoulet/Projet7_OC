@@ -1,12 +1,22 @@
 const express = require('express');
 const path = require('path');
+const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
+const morgan = require('morgan');
 const mongoose = require('mongoose');
 
 const booksRoutes = require('./routes/books');
 const userRoutes = require('./routes/user');
 
-mongoose.connect('mongodb+srv://lucas-user:Lucas2003@monvieuxgrimoire.xg7vu0w.mongodb.net/?retryWrites=true&w=majority',)
+dotenv.config({ path: './config.env' });
+
+const DB = process.env.DATABASE.replace(
+    '<PASSWORD>', 
+    process.env.DATABASE_PASSWORD
+);
+
+mongoose
+    .connect(DB)
     .then(() => console.log('Connexion à MongoDB réussie !'))
     .catch(() => console.log('Connexion à MongoDB échouée !'));
 
@@ -20,6 +30,8 @@ app.use((req, res, next) => {
 });
 
 app.use(bodyParser.json());
+
+app.use(morgan('dev'));
 
 app.use('/illustrations', express.static('./illustrations'));
 app.use('/api/books', booksRoutes);
