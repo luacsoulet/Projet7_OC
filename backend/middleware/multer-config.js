@@ -1,38 +1,41 @@
 const multer = require('multer');
 const sharp = require('sharp');
+const fs = require('fs');
 
-const MIME_TYPES = {
-    'image/jpg': 'jpg',
-    'image/jpeg': 'jpg',
-    'image/png': 'png'
-};
+const multerStorage = multer.memoryStorage();
 
-let ref;
-
-const storage = multer.diskStorage({
-    destination: (req, file, callback) => {
-        callback(null, 'illustrations');
-    },
-    filename: async (req, file, callback) => {
-        const name = file.originalname.split(' ').join('-');
-        const extension = MIME_TYPES[file.mimetype];
-        ref = name.replace(`.${extension}`, '') + Date.now() + '.' + extension;
-        compressedImage(ref);
-        callback(null, ref);
-    }
+const upload = multer({
+    storage: multerStorage
 });
 
-const compressedImage = async (imgName) => {
-    const extensionOfImage = imgName.indexOf('.', imgName.indexOf('.') + 1);
+exports.uploadBookCover = upload.single('image');
 
-    const ImageName = imgName.substring(0, extensionOfImage + 1);
+exports.resizeBookCover = async(req, res, next) => {
 
-    const newImageName = ImageName + '.webp';
-    await sharp('./illustrations/' + imgName)
-        .toFormat('webp', { palette: true })
-        .toFile(__dirname + '/compressed_illustrations/' + newImageName);
+    const imagesFolder = './illustrations';
+
+    if (!fs.existsSync(imagesFolder)) {
+        fs.mkdirSync(imagesFolder);
+    };
+
+    if (!req.file) return next();
+
+    console.log(req.file);
+    console.log(JSON.parse(req.body.book))
+    const originalName = req.file.originalname.split(' ').join('-').replace(/\.[^/.]+$/, "");
+
+    const date = new Date(Date.now()).getMinutes();
+
+    const coverName = `${originalName}-${date}-cover.webp`;
+
+    req.body.book.imageUrl = `${req.protocol}://${req.get('host')}/ilustrations/${coverName}`;
+
+    console.log(req.body.book.imageUrl);
+
+    await sharp(req.file.buffer)
+        .toFormat('webp')
+        .webp({ quality: 75 })
+        .toFile(`${imagesFolder}/${coverName}`);
+
+    next();
 };
-
-module.exports = multer({ storage: storage }).single('image');
-
-
