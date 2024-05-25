@@ -90,7 +90,7 @@ exports.modifyBook = (req, res, next) => {
     Book.findOne({ _id: req.params.id })
         .then((book) => {
             if (book.userId != req.auth.userId) {
-                res.status(403).json({ message: 'Not authorized' });
+                res.status(403).json({ message: '403: unauthorized request' });
             } else {
                 if (req.file) {
                     const filename = book.imageUrl.split('/illustrations/')[1];
@@ -109,7 +109,7 @@ exports.deleteBook = (req, res, next) => {
     Book.findOne({ _id: req.params.id })
         .then(book => {
             if (book.userId != req.auth.userId) {
-                res.status(401).json({ message: 'Not authorized' });
+                res.status(401).json({ message: '403: unauthorized request' });
             } else {
                 const filename = book.imageUrl.split('/illustrations/')[1];
                 fs.unlink(`illustrations/${filename}`, () => {
