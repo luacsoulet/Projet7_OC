@@ -20,22 +20,24 @@ exports.resizeBookCover = async(req, res, next) => {
 
     if (!req.file) return next();
 
-    console.log(req.file);
-    console.log(JSON.parse(req.body.book))
-    const originalName = req.file.originalname.split(' ').join('-').replace(/\.[^/.]+$/, "");
+    try {
+        const originalName = req.file.originalname.split(' ').join('-').replace(/\.[^/.]+$/, "");
 
-    const date = new Date(Date.now()).getMinutes();
+        const date = new Date(Date.now()).getMinutes();
 
-    const coverName = `${originalName}-${date}-cover.webp`;
+        const coverName = `${originalName}-${date}-cover.webp`;
 
-    req.body.book.imageUrl = `${req.protocol}://${req.get('host')}/ilustrations/${coverName}`;
+        req.body.book.imageUrl = `${req.protocol}://${req.get('host')}/ilustrations/${coverName}`;
 
-    console.log(req.body.book.imageUrl);
+        console.log(req.body.book.imageUrl);
 
-    await sharp(req.file.buffer)
-        .toFormat('webp')
-        .webp({ quality: 75 })
-        .toFile(`${imagesFolder}/${coverName}`);
+        await sharp(req.file.buffer)
+            .toFormat('webp')
+            .webp({ quality: 75 })
+            .toFile(`${imagesFolder}/${coverName}`);
 
-    next();
+        next();
+    } catch (error) {
+        res.status(401).json({ error });
+    }
 };
